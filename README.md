@@ -8,6 +8,7 @@ Plataforma de formación, investigación y trabajo comunitario.
 - **Estilos**: Tailwind CSS
 - **Autenticación**: Supabase Auth
 - **Base de datos**: Supabase PostgreSQL
+- **SDK Supabase**: @supabase/ssr (SSR-optimizado)
 - **Iconos**: Lucide React
 
 ## Requisitos
@@ -42,12 +43,13 @@ Edita `.env.local`:
 
 ```
 NEXT_PUBLIC_SUPABASE_URL=https://tu-proyecto.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-clave-anonima
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=tu-clave-publishable
 ```
 
 Obtén estas credenciales desde tu proyecto en Supabase:
 - Proyecto → Configuración → API
-- Copia la URL y la clave pública (anon)
+- `NEXT_PUBLIC_SUPABASE_URL`: URL del proyecto
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`: Clave pública (anon/publishable)
 
 ### 4. Ejecutar el servidor de desarrollo
 
@@ -219,7 +221,7 @@ Crea un archivo `.env.local`:
 
 ```
 NEXT_PUBLIC_SUPABASE_URL=<tu-url>
-NEXT_PUBLIC_SUPABASE_ANON_KEY=<tu-clave>
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<tu-clave-publishable>
 ```
 
 ## Despliegue
