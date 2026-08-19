@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { Menu, X, LogOut } from 'lucide-react';
 
@@ -46,12 +47,12 @@ export function Header({ userName }: HeaderProps) {
 
           {/* Navegación Desktop */}
           <nav className="hidden md:flex items-center gap-8">
-            <a href="/dashboard" className="text-sm hover:opacity-80 transition">
+            <Link href="/dashboard" className="text-sm hover:opacity-80 transition">
               Dashboard
-            </a>
-            <a href="/profile" className="text-sm hover:opacity-80 transition">
+            </Link>
+            <Link href="/profile" className="text-sm hover:opacity-80 transition">
               Perfil
-            </a>
+            </Link>
           </nav>
 
           {/* Usuario y Logout */}
@@ -81,18 +82,18 @@ export function Header({ userName }: HeaderProps) {
         {isOpen && (
           <div className="md:hidden pb-4 border-t border-institutional-light/10">
             <nav className="flex flex-col gap-2 pt-4">
-              <a
+              <Link
                 href="/dashboard"
                 className="text-sm hover:opacity-80 transition py-2"
               >
                 Dashboard
-              </a>
-              <a
+              </Link>
+              <Link
                 href="/profile"
                 className="text-sm hover:opacity-80 transition py-2"
               >
                 Perfil
-              </a>
+              </Link>
               <button
                 onClick={handleLogout}
                 className="flex items-center gap-2 text-sm hover:opacity-80 transition py-2"

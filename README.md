@@ -33,7 +33,7 @@ npm install
 
 ### 3. Configurar variables de entorno
 
-Copia el archivo `.env.example` a `.env.local` y completa con tus credenciales de Supabase:
+Copia el archivo `.env.example` a `.env.local` y completa con tus credenciales:
 
 ```bash
 cp .env.example .env.local
@@ -44,12 +44,15 @@ Edita `.env.local`:
 ```
 NEXT_PUBLIC_SUPABASE_URL=https://tu-proyecto.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=tu-clave-publishable
+NEXT_PUBLIC_SITE_URL=http://localhost:3000/academia
 ```
 
-Obtén estas credenciales desde tu proyecto en Supabase:
-- Proyecto → Configuración → API
-- `NEXT_PUBLIC_SUPABASE_URL`: URL del proyecto
-- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`: Clave pública (anon/publishable)
+**Variables de entorno:**
+- `NEXT_PUBLIC_SUPABASE_URL`: URL del proyecto Supabase
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`: Clave pública (anon/publishable) de Supabase
+- `NEXT_PUBLIC_SITE_URL`: URL pública de Academia
+  - **Desarrollo**: `http://localhost:3000/academia`
+  - **Producción**: `https://www.meriadock.org.mx/academia`
 
 ### 4. Ejecutar el servidor de desarrollo
 
@@ -57,7 +60,33 @@ Obtén estas credenciales desde tu proyecto en Supabase:
 npm run dev
 ```
 
-Abre [http://localhost:3000](http://localhost:3000) en tu navegador.
+Abre [http://localhost:3000/academia](http://localhost:3000/academia) en tu navegador.
+
+**Nota**: Academia se ejecuta bajo el prefijo `/academia` (basePath) tanto en desarrollo como en producción.
+
+## Integración con meriadock-site
+
+Academia Meriadock está integrada en el sitio principal a través de path routing:
+
+- **URL pública**: `https://www.meriadock.org.mx/academia`
+- **Rutas internas**: Se sirven bajo `/academia/login`, `/academia/dashboard`, etc.
+- **basePath**: Configurado a `/academia` en `next.config.js`
+- **Repositorio independiente**: Mantenido como proyecto separado en Vercel
+
+### Redirecciones de Supabase Auth
+
+Las redirecciones de autenticación se calculan dinámicamente usando `NEXT_PUBLIC_SITE_URL`:
+
+```typescript
+// En desarrollo: http://localhost:3000/academia/reset-password
+// En producción: https://www.meriadock.org.mx/academia/reset-password
+const redirectTo = `${NEXT_PUBLIC_SITE_URL}/reset-password`;
+```
+
+Para cambiar las Redirect URLs en Supabase, ve a:
+**Authentication → URL Configuration** y agrega/actualiza:
+- `http://localhost:3000/academia` (desarrollo)
+- `https://www.meriadock.org.mx/academia` (producción)
 
 ## Flujo de Autenticación
 
@@ -222,6 +251,7 @@ Crea un archivo `.env.local`:
 ```
 NEXT_PUBLIC_SUPABASE_URL=<tu-url>
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<tu-clave-publishable>
+NEXT_PUBLIC_SITE_URL=http://localhost:3000/academia
 ```
 
 ## Despliegue
