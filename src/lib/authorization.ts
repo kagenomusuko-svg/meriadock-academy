@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/client';
+import { UserRole, UserStatus } from '@/types';
 
 export async function canDo(permission: string): Promise<boolean> {
   const supabase = createClient();
@@ -34,7 +35,7 @@ export async function canDoInScope(
   return data ?? false;
 }
 
-export async function getMyRoles() {
+export async function getMyRoles(): Promise<UserRole[]> {
   const supabase = createClient();
 
   const { data, error } = await supabase.rpc('get_my_roles');
@@ -47,7 +48,7 @@ export async function getMyRoles() {
   return data ?? [];
 }
 
-export async function getMyAccountStatus() {
+export async function getMyAccountStatus(): Promise<{ id: string; status: UserStatus } | null> {
   const supabase = createClient();
 
   const { data, error } = await supabase.rpc('get_my_account_status');
