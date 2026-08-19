@@ -5,6 +5,7 @@ import { Header } from '@/components/Header';
 import { Sidebar } from '@/components/Sidebar';
 import { Loading } from '@/components/Loading';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { Users, Lock, Database, FileText } from 'lucide-react';
 
@@ -167,7 +168,7 @@ export default function AdminPage() {
               {statCards.map((card) => {
                 const Icon = card.icon;
                 return (
-                  <a
+                  <Link
                     key={card.href}
                     href={card.href}
                     className="bg-white border border-gray-200 rounded-lg p-6 hover:border-institutional-dark hover:shadow-lg transition"
@@ -182,7 +183,7 @@ export default function AdminPage() {
                       {card.value}
                     </div>
                     <p className="text-sm text-gray-600">{card.label}</p>
-                  </a>
+                    </Link>
                 );
               })}
             </div>
