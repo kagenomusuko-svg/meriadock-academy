@@ -297,14 +297,10 @@ export default function DashboardPage() {
               </div>
             ) : (
               <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                  Mi Academia
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {modules.map((module) => {
-                    const Icon = module.icon;
-                    const userHasRole = roles.some((r) => {
-                      // Mapear roles a módulos
+                {(() => {
+                  // Calcular módulos disponibles basándose en roles reales
+                  const availableModules = modules.filter((module) => {
+                    const hasRole = roles.some((r) => {
                       if (module.id === 'formacion')
                         return r.role_name === 'estudiante';
                       if (module.id === 'docencia')
@@ -317,51 +313,59 @@ export default function DashboardPage() {
                         return r.role_name === 'coordinador';
                       return false;
                     });
+                    return hasRole && module.available;
+                  });
 
+                  // Si no tiene roles académicos, mostrar estado vacío
+                  if (availableModules.length === 0) {
                     return (
-                      <div
-                        key={module.id}
-                        className={`rounded-lg border-2 p-6 transition ${
-                          module.available
-                            ? userHasRole
-                              ? 'border-institutional-dark bg-institutional-dark/5 cursor-pointer hover:shadow-lg'
-                              : 'border-gray-200 bg-gray-50 cursor-not-allowed opacity-60'
-                            : 'border-gray-200 bg-gray-50'
-                        }`}
-                      >
-                        <Icon
-                          size={32}
-                          className={`mb-4 ${
-                            module.available && userHasRole
-                              ? 'text-institutional-dark'
-                              : 'text-gray-400'
-                          }`}
-                        />
-                        <h3 className="font-semibold text-gray-900 mb-2">
-                          {module.title}
-                        </h3>
-                        <p className="text-sm text-gray-600 mb-4">
-                          {module.description}
+                      <div className="text-center py-12">
+                        <Calendar size={48} className="mx-auto text-gray-400 mb-4" />
+                        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                          Sin áreas asignadas
+                        </h2>
+                        <p className="text-gray-600">
+                          No tienes acceso a ningún área académica en este momento.
+                          Contacta con administración si crees que es un error.
                         </p>
-                        {module.available ? (
-                          userHasRole ? (
-                            <button className="text-sm font-medium text-institutional-dark hover:underline">
-                              Acceder →
-                            </button>
-                          ) : (
-                            <p className="text-xs text-gray-500">
-                              No tienes acceso a este módulo
-                            </p>
-                          )
-                        ) : (
-                          <p className="text-xs text-gray-500 bg-yellow-50 px-2 py-1 rounded inline-block">
-                            Módulo en construcción
-                          </p>
-                        )}
                       </div>
                     );
-                  })}
-                </div>
+                  }
+
+                  // Mostrar solo los módulos disponibles
+                  return (
+                    <div>
+                      <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                        Mi Academia
+                      </h2>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {availableModules.map((module) => {
+                          const Icon = module.icon;
+                          return (
+                            <div
+                              key={module.id}
+                              className="border-2 border-institutional-dark bg-institutional-dark/5 rounded-lg p-6 cursor-pointer hover:shadow-lg transition"
+                            >
+                              <Icon
+                                size={32}
+                                className="mb-4 text-institutional-dark"
+                              />
+                              <h3 className="font-semibold text-gray-900 mb-2">
+                                {module.title}
+                              </h3>
+                              <p className="text-sm text-gray-600 mb-4">
+                                {module.description}
+                              </p>
+                              <button className="text-sm font-medium text-institutional-dark hover:underline">
+                                Acceder →
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             )}
           </div>
