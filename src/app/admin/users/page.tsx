@@ -14,9 +14,14 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState<any[]>([]);
   const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [newStatus, setNewStatus] = useState('');
   const [updating, setUpdating] = useState(false);
   const [message, setMessage] = useState('');
+  const [userRoles, setUserRoles] = useState<any[]>([]);
+  const [availableRoles, setAvailableRoles] = useState<any[]>([]);
+  const [selectedRoleToAssign, setSelectedRoleToAssign] = useState('');
+  const [assigningRole, setAssigningRole] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -29,6 +34,8 @@ export default function AdminUsersPage() {
         router.push('/login');
         return;
       }
+
+      setCurrentUser(user);
 
       // Verificar permisos
       const hasPermission = await supabase.rpc('can_do', {
@@ -55,11 +62,41 @@ export default function AdminUsersPage() {
         setUsers(usersData);
       }
 
+      // Obtener roles disponibles
+      const { data: rolesData } = await supabase
+        .from('roles')
+        .select('*')
+        .order('name');
+
+      if (rolesData) {
+        setAvailableRoles(rolesData);
+      }
+
       setLoading(false);
     };
 
     checkAuth();
   }, [router]);
+
+  const loadUserRoles = async (userId: string) => {
+    const supabase = createClient();
+    const { data: rolesData } = await supabase
+      .from('role_assignments')
+      .select('*, roles(name, is_system_role)')
+      .eq('user_id', userId);
+
+    if (rolesData) {
+      setUserRoles(rolesData);
+    }
+  };
+
+  const handleSelectUser = async (user: any) => {
+    setSelectedUser(user);
+    setNewStatus('');
+    setSelectedRoleToAssign('');
+    setMessage('');
+    await loadUserRoles(user.id);
+  };
 
   const handleStatusChange = async () => {
     if (!selectedUser || !newStatus) return;
@@ -92,6 +129,66 @@ export default function AdminUsersPage() {
       setMessage('Error inesperado');
     } finally {
       setUpdating(false);
+    }
+  };
+
+  const handleAssignRole = async () => {
+    if (!selectedUser || !selectedRoleToAssign) return;
+
+    setAssigningRole(true);
+    setMessage('');
+
+    try {
+      const supabase = createClient();
+      const result = await supabase.rpc('admin_assign_role', {
+        p_target_user_id: selectedUser.id,
+        p_role_name: selectedRoleToAssign,
+        p_scope_id: null,
+      });
+
+      if (result.data) {
+        setMessage('Rol asignado correctamente');
+        setSelectedRoleToAssign('');
+        await loadUserRoles(selectedUser.id);
+        setTimeout(() => setMessage(''), 3000);
+      } else {
+        setMessage('Error al asignar el rol');
+      }
+    } catch (error: any) {
+      setMessage(error.message || 'Error inesperado');
+    } finally {
+      setAssigningRole(false);
+    }
+  };
+
+  const handleRevokeRole = async (roleAssignmentId: string) => {
+    if (!selectedUser) return;
+
+    setAssigningRole(true);
+    setMessage('');
+
+    try {
+      const supabase = createClient();
+      const roleAssignment = userRoles.find((r) => r.id === roleAssignmentId);
+      if (!roleAssignment) return;
+
+      const result = await supabase.rpc('admin_revoke_role', {
+        p_target_user_id: selectedUser.id,
+        p_role_name: (roleAssignment.roles as any).name,
+        p_scope_id: roleAssignment.scope_id,
+      });
+
+      if (result.data) {
+        setMessage('Rol revocado correctamente');
+        await loadUserRoles(selectedUser.id);
+        setTimeout(() => setMessage(''), 3000);
+      } else {
+        setMessage('Error al revocar el rol');
+      }
+    } catch (error: any) {
+      setMessage(error.message || 'Error inesperado');
+    } finally {
+      setAssigningRole(false);
     }
   };
 
@@ -144,7 +241,7 @@ export default function AdminUsersPage() {
                           return (
                             <tr
                               key={user.id}
-                              onClick={() => setSelectedUser(user)}
+                              onClick={() => handleSelectUser(user)}
                               className={`cursor-pointer hover:bg-gray-50 transition ${
                                 selectedUser?.id === user.id
                                   ? 'bg-institutional-dark/5'
@@ -250,7 +347,7 @@ export default function AdminUsersPage() {
                         value={newStatus || selectedUser.status}
                         onChange={(e) => setNewStatus(e.target.value)}
                         className="input-field mb-3"
-                        disabled={updating}
+                        disabled={updating || assigningRole}
                       >
                         <option value="">Seleccionar...</option>
                         <option value="active">Activo</option>
@@ -259,11 +356,104 @@ export default function AdminUsersPage() {
                       </select>
                       <button
                         onClick={handleStatusChange}
-                        disabled={!newStatus || updating}
+                        disabled={!newStatus || updating || assigningRole}
                         className="btn-primary w-full"
                       >
                         {updating ? 'Actualizando...' : 'Actualizar'}
                       </button>
+                    </div>
+
+                    {/* Gestión de roles */}
+                    <div className="border-t border-gray-200 pt-6 mt-6">
+                      <h3 className="text-sm font-semibold text-gray-900 mb-4">
+                        Roles del usuario
+                      </h3>
+
+                      {/* Roles actuales */}
+                      {userRoles.length > 0 ? (
+                        <div className="mb-4">
+                          <div className="space-y-2">
+                            {userRoles.map((roleAssignment) => {
+                              const role = (roleAssignment.roles as any);
+                              const isSystemAdmin = role?.name === 'system_admin';
+                              const canRevoke =
+                                currentUser?.id !== selectedUser.id &&
+                                !isSystemAdmin;
+
+                              return (
+                                <div
+                                  key={roleAssignment.id}
+                                  className="flex items-center justify-between bg-gray-50 p-3 rounded text-sm"
+                                >
+                                  <div>
+                                    <span className="font-medium text-gray-900">
+                                      {role?.name}
+                                    </span>
+                                    {isSystemAdmin && (
+                                      <span className="ml-2 inline-flex px-2 py-1 bg-red-100 text-red-800 text-xs font-semibold rounded">
+                                        Sistema
+                                      </span>
+                                    )}
+                                  </div>
+                                  {canRevoke && (
+                                    <button
+                                      onClick={() =>
+                                        handleRevokeRole(roleAssignment.id)
+                                      }
+                                      disabled={assigningRole}
+                                      className="text-xs text-red-600 hover:text-red-800 font-medium"
+                                    >
+                                      Revocar
+                                    </button>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-gray-600 mb-4">
+                          Sin roles asignados
+                        </p>
+                      )}
+
+                      {/* Asignar rol */}
+                      {currentUser?.id !== selectedUser.id &&
+                        !userRoles.some(
+                          (r) => (r.roles as any)?.name === 'system_admin'
+                        ) && (
+                          <div>
+                            <label className="label-field">Asignar rol</label>
+                            <select
+                              value={selectedRoleToAssign}
+                              onChange={(e) =>
+                                setSelectedRoleToAssign(e.target.value)
+                              }
+                              className="input-field mb-3"
+                              disabled={assigningRole}
+                            >
+                              <option value="">Seleccionar...</option>
+                              {availableRoles
+                                .filter(
+                                  (role) => role.name !== 'system_admin'
+                                )
+                                .map((role) => (
+                                  <option key={role.id} value={role.name}>
+                                    {role.name}
+                                  </option>
+                                ))}
+                            </select>
+                            <button
+                              onClick={handleAssignRole}
+                              disabled={!selectedRoleToAssign || assigningRole}
+                              className="btn-primary w-full"
+                            >
+                              {assigningRole
+                                ? 'Asignando...'
+                                : 'Asignar rol'}
+                            </button>
+                          </div>
+                        )}
                     </div>
                   </div>
                 ) : (

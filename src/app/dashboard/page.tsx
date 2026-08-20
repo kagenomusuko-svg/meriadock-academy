@@ -5,10 +5,21 @@ import { Header } from '@/components/Header';
 import { Sidebar } from '@/components/Sidebar';
 import { Loading } from '@/components/Loading';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { UserRole, UserStatus, UserProfile } from '@/types';
 import { getMyRoles, getMyAccountStatus } from '@/lib/authorization';
-import { Calendar, Users, BookOpen, Beaker, Users2, Shield } from 'lucide-react';
+import {
+  Calendar,
+  Users,
+  BookOpen,
+  Beaker,
+  Users2,
+  Shield,
+  Lock,
+  Database,
+  FileText,
+} from 'lucide-react';
 
 const modules = [
   {
@@ -200,72 +211,159 @@ export default function DashboardPage() {
               </div>
             )}
 
-            {/* Módulos */}
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                Mi Academia
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {modules.map((module) => {
-                  const Icon = module.icon;
-                  const userHasRole = roles.some((r) => {
-                    // Mapear roles a módulos
-                    if (module.id === 'formacion') return r.role_name === 'estudiante';
-                    if (module.id === 'docencia')
-                      return r.role_name === 'docente';
-                    if (module.id === 'tutoria') return r.role_name === 'tutor';
-                    if (module.id === 'investigacion')
-                      return r.role_name === 'investigador';
-                    if (module.id === 'coordinacion')
-                      return r.role_name === 'coordinador';
-                    return false;
-                  });
+            {/* Panel administrativo o Módulos académicos */}
+            {isAdmin ? (
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                  Panel de Administración
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <Link
+                    href="/admin/users"
+                    className="border border-gray-200 rounded-lg p-6 hover:border-institutional-dark hover:shadow-lg transition"
+                  >
+                    <Users
+                      size={32}
+                      className="mb-4 text-institutional-dark"
+                    />
+                    <h3 className="font-semibold text-gray-900 mb-2">
+                      Usuarios
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Gestiona usuarios, roles y permisos
+                    </p>
+                    <span className="text-sm font-medium text-institutional-dark hover:underline">
+                      Acceder →
+                    </span>
+                  </Link>
 
-                  return (
-                    <div
-                      key={module.id}
-                      className={`rounded-lg border-2 p-6 transition ${
-                        module.available
-                          ? userHasRole
-                            ? 'border-institutional-dark bg-institutional-dark/5 cursor-pointer hover:shadow-lg'
-                            : 'border-gray-200 bg-gray-50 cursor-not-allowed opacity-60'
-                          : 'border-gray-200 bg-gray-50'
-                      }`}
-                    >
-                      <Icon
-                        size={32}
-                        className={`mb-4 ${
-                          module.available && userHasRole
-                            ? 'text-institutional-dark'
-                            : 'text-gray-400'
-                        }`}
-                      />
-                      <h3 className="font-semibold text-gray-900 mb-2">
-                        {module.title}
-                      </h3>
-                      <p className="text-sm text-gray-600 mb-4">
-                        {module.description}
-                      </p>
-                      {module.available ? (
-                        userHasRole ? (
-                          <button className="text-sm font-medium text-institutional-dark hover:underline">
-                            Acceder →
-                          </button>
-                        ) : (
-                          <p className="text-xs text-gray-500">
-                            No tienes acceso a este módulo
-                          </p>
-                        )
-                      ) : (
-                        <p className="text-xs text-gray-500 bg-yellow-50 px-2 py-1 rounded inline-block">
-                          Módulo en construcción
-                        </p>
-                      )}
-                    </div>
-                  );
-                })}
+                  <Link
+                    href="/admin/audit"
+                    className="border border-gray-200 rounded-lg p-6 hover:border-institutional-dark hover:shadow-lg transition"
+                  >
+                    <FileText
+                      size={32}
+                      className="mb-4 text-institutional-dark"
+                    />
+                    <h3 className="font-semibold text-gray-900 mb-2">
+                      Auditoría
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Consulta los registros de auditoría del sistema
+                    </p>
+                    <span className="text-sm font-medium text-institutional-dark hover:underline">
+                      Acceder →
+                    </span>
+                  </Link>
+
+                  <Link
+                    href="/admin/roles"
+                    className="border border-gray-200 rounded-lg p-6 hover:border-institutional-dark hover:shadow-lg transition"
+                  >
+                    <Lock
+                      size={32}
+                      className="mb-4 text-institutional-dark"
+                    />
+                    <h3 className="font-semibold text-gray-900 mb-2">
+                      Roles
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Visualiza roles y sus asignaciones
+                    </p>
+                    <span className="text-sm font-medium text-institutional-dark hover:underline">
+                      Acceder →
+                    </span>
+                  </Link>
+
+                  <Link
+                    href="/admin/scopes"
+                    className="border border-gray-200 rounded-lg p-6 hover:border-institutional-dark hover:shadow-lg transition"
+                  >
+                    <Database
+                      size={32}
+                      className="mb-4 text-institutional-dark"
+                    />
+                    <h3 className="font-semibold text-gray-900 mb-2">
+                      Ámbitos
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Consulta los ámbitos del sistema
+                    </p>
+                    <span className="text-sm font-medium text-institutional-dark hover:underline">
+                      Acceder →
+                    </span>
+                  </Link>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                  Mi Academia
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {modules.map((module) => {
+                    const Icon = module.icon;
+                    const userHasRole = roles.some((r) => {
+                      // Mapear roles a módulos
+                      if (module.id === 'formacion')
+                        return r.role_name === 'estudiante';
+                      if (module.id === 'docencia')
+                        return r.role_name === 'docente';
+                      if (module.id === 'tutoria')
+                        return r.role_name === 'tutor';
+                      if (module.id === 'investigacion')
+                        return r.role_name === 'investigador';
+                      if (module.id === 'coordinacion')
+                        return r.role_name === 'coordinador';
+                      return false;
+                    });
+
+                    return (
+                      <div
+                        key={module.id}
+                        className={`rounded-lg border-2 p-6 transition ${
+                          module.available
+                            ? userHasRole
+                              ? 'border-institutional-dark bg-institutional-dark/5 cursor-pointer hover:shadow-lg'
+                              : 'border-gray-200 bg-gray-50 cursor-not-allowed opacity-60'
+                            : 'border-gray-200 bg-gray-50'
+                        }`}
+                      >
+                        <Icon
+                          size={32}
+                          className={`mb-4 ${
+                            module.available && userHasRole
+                              ? 'text-institutional-dark'
+                              : 'text-gray-400'
+                          }`}
+                        />
+                        <h3 className="font-semibold text-gray-900 mb-2">
+                          {module.title}
+                        </h3>
+                        <p className="text-sm text-gray-600 mb-4">
+                          {module.description}
+                        </p>
+                        {module.available ? (
+                          userHasRole ? (
+                            <button className="text-sm font-medium text-institutional-dark hover:underline">
+                              Acceder →
+                            </button>
+                          ) : (
+                            <p className="text-xs text-gray-500">
+                              No tienes acceso a este módulo
+                            </p>
+                          )
+                        ) : (
+                          <p className="text-xs text-gray-500 bg-yellow-50 px-2 py-1 rounded inline-block">
+                            Módulo en construcción
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         </main>
       </div>
